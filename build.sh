@@ -6,7 +6,7 @@ UPSTREAM=""
 BRANCH=""
 FLAVOR=""
 TOOLCHAINS=()
-CONFIGS=()
+CONFIG_FRAGMENTS=()
 AK3_REPO=""
 AK3_BRANCH="main"
 CLEAN=false
@@ -28,6 +28,24 @@ usage() {
     echo "  [--ak3 <anykernel3_repo>] \\"
     echo "  [--ak3-branch <branch>]"
     echo "  [--clean]"
+    exit 1
+}
+
+log() {
+    echo
+    echo "[*] $*"
+}
+
+success() {
+    echo "[✓] $*"
+}
+
+warn() {
+    echo "[!] $*"
+}
+
+error() {
+    echo "[✗] $*"
     exit 1
 }
 
@@ -88,6 +106,16 @@ while [[ $# -gt 0 ]]; do
 
     esac
 done
+
+# Clean only
+if $CLEAN && [[ -z "$UPSTREAM" && -z "$BRANCH" && -z "$FLAVOR" ]]; then
+    log "Cleaning workspace..."
+
+    rm -rf "$WORK_DIR"
+
+    success "Workspace cleaned."
+    exit 0
+fi
 
 # Validation
 if [[ -z "$UPSTREAM" || -z "$BRANCH" || -z "$FLAVOR" ]]; then
@@ -160,8 +188,7 @@ echo "=============================="
 
 # Workspace
 if $CLEAN; then
-    echo
-    echo "[*] Cleaning workspace..."
+    log "Cleaning workspace..."
     rm -rf "$WORK_DIR"
 fi
 
@@ -169,14 +196,13 @@ mkdir -p "$WORK_DIR"
 mkdir -p "$TOOLCHAIN_DIR"
 
 # Clone upstream kernel
-echo
-echo "[*] Preparing kernel source..."
+log "Preparing kernel source..."
 
 if [[ -d "$KERNEL_DIR/.git" ]]; then
-    echo "[*] Existing kernel source found."
-    echo "[*] Reusing: $KERNEL_DIR"
+    warn "Existing kernel source found."
+    log " Reusing: $KERNEL_DIR"
 else
-    echo "[*] Cloning upstream..."
+    log "[*] Cloning upstream..."
 
     git clone \
         --depth=1 \
@@ -184,5 +210,5 @@ else
         "$UPSTREAM" \
         "$KERNEL_DIR"
 
-    echo "[✓] Kernel cloned."
+    success "Kernel cloned."
 fi
