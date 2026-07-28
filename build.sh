@@ -202,7 +202,7 @@ if [[ -d "$KERNEL_DIR/.git" ]]; then
     warn "Existing kernel source found."
     log " Reusing: $KERNEL_DIR"
 else
-    log "[*] Cloning upstream..."
+    log "Cloning upstream..."
 
     git clone \
         --depth=1 \
