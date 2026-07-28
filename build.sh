@@ -5,7 +5,7 @@ set -e
 UPSTREAM=""
 BRANCH=""
 FLAVOR=""
-TOOLCHAINS=()
+declare -A TOOLCHAINS
 CONFIG_FRAGMENTS=()
 AK3_REPO=""
 AK3_BRANCH="main"
@@ -69,12 +69,26 @@ while [[ $# -gt 0 ]]; do
             ;;
 
         --toolchains)
-            shift
-            while [[ $# -gt 0 && "$1" != --* ]]; do
-                TOOLCHAINS+=("$1")
-                shift
-            done
-            ;;
+    shift
+
+    while [[ $# -gt 0 && "$1" != --* ]]; do
+
+        KEY="${1%%=*}"
+        VALUE="${1#*=}"
+
+        if [[ "$1" != *=* || -z "$KEY" || -z "$VALUE" ]]; then
+            error "Invalid toolchain format: '$1'. Expected: role=https://..."
+        fi
+
+        if [[ -n "${TOOLCHAINS[$KEY]:-}" ]]; then
+            error "Duplicate toolchain role: '$KEY'"
+        fi
+
+        TOOLCHAINS["$KEY"]="$VALUE"
+
+        shift
+    done
+    ;;
 
         --configs)
             shift
@@ -159,7 +173,10 @@ echo "Toolchains:"
 if [[ ${#TOOLCHAINS[@]} -eq 0 ]]; then
     echo "  None"
 else
-    printf '  - %s\n' "${TOOLCHAINS[@]}"
+    for KEY in "${!TOOLCHAINS[@]}"; do
+        echo "  $KEY:"
+        echo "    ${TOOLCHAINS[$KEY]}"
+    done
 fi
 
 echo
@@ -212,3 +229,27 @@ else
 
     success "Kernel cloned."
 fi
+
+# Toolchains
+log "Preparing toolchains..."
+
+for KEY in "${!TOOLCHAINS[@]}"; do
+
+    URL="${TOOLCHAINS[$KEY]}"
+    NAME="$(basename "$URL" .git)"
+    DEST="$TOOLCHAIN_DIR/$NAME"
+
+    if [[ -d "$DEST/.git" ]]; then
+        success "$KEY already exists."
+        continue
+    fi
+
+    log "Cloning $KEY..."
+
+    git clone --depth=1 \
+        "$URL" \
+        "$DEST"
+
+    success "$KEY ready."
+
+done
