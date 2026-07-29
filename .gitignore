@@ -1,5 +1,6 @@
 # Build workspace
 work/
+work/*.log
 
 # Toolchains
 toolchains/
