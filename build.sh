@@ -46,20 +46,20 @@ usage() {
 }
 
 log() {
-    echo
-    echo "[*] $*"
+    echo >&2
+    echo "[*] $*" >&2
 }
 
 success() {
-    echo "[✓] $*"
+    echo "[✓] $*" >&2
 }
 
 warn() {
-    echo "[!] $*"
+    echo "[!] $*" >&2
 }
 
 error() {
-    echo "[✗] $*"
+    echo "[✗] $*" >&2
     exit 1
 }
 
@@ -227,9 +227,10 @@ setup_build_env() {
         fi
     fi
 
-    if [[ -n "${TOOLCHAIN_PATHS[gcc64]:-}" ]]; then
+    local gcc64_path="${TOOLCHAIN_PATHS[gcc64]:-${TOOLCHAIN_PATHS[gcc]:-}}"
+    if [[ -n "$gcc64_path" ]]; then
         local bindir64
-        bindir64="$(find_bin_dir "${TOOLCHAIN_PATHS[gcc64]}")"
+        bindir64="$(find_bin_dir "$gcc64_path")"
         if [[ -n "$bindir64" ]]; then
             extra_paths+=("$bindir64")
             local prefix64
@@ -645,7 +646,7 @@ fi
 
 # Toolchains
 download_toolchain() {
-    local key="$1" url="$2" dest="$3"
+    local key="$1" url="$2"
 
     # Determine toolchain name from URL
     local base
