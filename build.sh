@@ -110,17 +110,17 @@ setup_flavor() {
             fi
             log "Downloading ReSukiSU setup script..."
             if command -v curl &>/dev/null; then
-                curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" 2>/dev/null | bash -s -- "$KERNEL_DIR" || {
-                    error "ReSukiSU setup failed."
-                }
+                (cd "$KERNEL_DIR" && curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash) || {
+         error "ReSukiSU setup failed."
+     }
             elif command -v wget &>/dev/null; then
-                wget -q -O - "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" 2>/dev/null | bash -s -- "$KERNEL_DIR" || {
-                    error "ReSukiSU setup failed."
-                }
+                (cd "$KERNEL_DIR" && wget -q -O - "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash) || {
+                error "ReSukiSU setup failed."
+    }
             else
                 error "curl or wget required for ReSukiSU setup."
             fi
-            if [[ ! -f "$KERNEL_DIR/ReSukiSU/Kconfig" ]]; then
+            if [[ ! -f "$KERNEL_DIR/KernelSU/kernel/Kconfig" ]]; then
                 error "ReSukiSU setup did not complete successfully."
             fi
             success "ReSukiSU source integrated."
@@ -133,11 +133,11 @@ setup_flavor() {
             fi
             log "Downloading KernelSU-Next setup script..."
             if command -v curl &>/dev/null; then
-                curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" 2>/dev/null | bash -s -- "$KERNEL_DIR" || {
+                (cd "$KERNEL_DIR" && curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash) || {
                     error "KernelSU-Next setup failed."
                 }
             elif command -v wget &>/dev/null; then
-                wget -q -O - "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" 2>/dev/null | bash -s -- "$KERNEL_DIR" || {
+                (cd "$KERNEL_DIR" && wget -q -O - "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash) || {
                     error "KernelSU-Next setup failed."
                 }
             else
