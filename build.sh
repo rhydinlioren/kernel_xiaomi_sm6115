@@ -633,21 +633,66 @@ else
 fi
 
 # Toolchains
+download_toolchain() {
+    local key="$1" url="$2" dest="$3"
+
+    # Determine toolchain name from URL
+    local base
+    base="$(basename "$url")"
+    base="${base%.tar.*}"
+    base="${base%.tgz}"
+    base="${base%.git}"
+    local target="$TOOLCHAIN_DIR/$base"
+
+    if [[ -d "$target" ]]; then
+        success "$key already exists ($target)."
+        echo "$target"
+        return 0
+    fi
+
+    if [[ "$url" =~ \.tar\.(gz|xz|bz2)$ || "$url" =~ \.tgz$ ]]; then
+        log "Downloading $key tarball..."
+        local archive="$TOOLCHAIN_DIR/$base.tar.archive"
+        if command -v curl &>/dev/null; then
+            curl -Lso "$archive" "$url"
+        elif command -v wget &>/dev/null; then
+            wget -q -O "$archive" "$url"
+        else
+            error "curl or wget required for toolchain download."
+        fi
+
+        local tmpdir="$TOOLCHAIN_DIR/.tmp-extract-$base"
+        rm -rf "$tmpdir"
+        mkdir -p "$tmpdir"
+
+        log "Extracting $key..."
+        tar -xf "$archive" -C "$tmpdir"
+        rm -f "$archive"
+
+        # Handle single top-level directory in tarball
+        local contents=("$tmpdir"/*)
+        if [[ ${#contents[@]} -eq 1 && -d "${contents[0]}" ]]; then
+            mv "${contents[0]}" "$target"
+        else
+            mv "$tmpdir" "$target"
+        fi
+        rm -rf "$tmpdir"
+
+        success "$key ready."
+    else
+        log "Cloning $key..."
+        git clone --depth=1 "$url" "$target"
+        success "$key ready."
+    fi
+
+    echo "$target"
+}
+
 log "Preparing toolchains..."
 
 for KEY in "${!TOOLCHAINS[@]}"; do
     URL="${TOOLCHAINS[$KEY]}"
-    NAME="$(basename "$URL" .git)"
-    DEST="$TOOLCHAIN_DIR/$NAME"
-
-    if [[ -d "$DEST/.git" ]]; then
-        success "$KEY already exists."
-    else
-        log "Cloning $KEY..."
-        git clone --depth=1 "$URL" "$DEST"
-        success "$KEY ready."
-    fi
-
+    DEST="$(download_toolchain "$KEY" "$URL")"
     TOOLCHAIN_PATHS["$KEY"]="$DEST"
 done
 
