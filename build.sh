@@ -9,6 +9,7 @@ declare -A TOOLCHAINS
 CONFIG_FRAGMENTS=()
 AK3_REPO=""
 AK3_BRANCH="main"
+DEFCONFIG=""
 CLEAN=false
 ROOT_DIR="$(pwd)"
 WORK_DIR="$ROOT_DIR/work"
@@ -35,6 +36,7 @@ usage() {
     echo "  --configs <config1> <config2> ... \\"
     echo "  [--ak3 <anykernel3_repo>] \\"
     echo "  [--ak3-branch <branch>] \\"
+    echo "  [--defconfig <defconfig_target>] \\"
     echo "  [--clean]"
     exit 1
 }
@@ -265,7 +267,7 @@ merge_config_fragments() {
         return 0
     fi
 
-    local defconfig="${DEFCONFIG:-vendor/${DEFCONFIG_NAME:-${FLAVOR}_defconfig}}"
+    local defconfig="${DEFCONFIG:-defconfig}"
 
     log "Merging config fragments..."
 
@@ -503,6 +505,11 @@ while [[ $# -gt 0 ]]; do
 
         --ak3-branch)
             AK3_BRANCH="$2"
+            shift 2
+            ;;
+
+        --defconfig)
+            DEFCONFIG="$2"
             shift 2
             ;;
 
