@@ -2,7 +2,7 @@
 work/
 work/*.log
 
-# Toolchains
+# Toolchains (now under work/)
 toolchains/
 
 # Environment

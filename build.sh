@@ -15,7 +15,7 @@ ROOT_DIR="$(pwd)"
 WORK_DIR="$ROOT_DIR/work"
 KERNEL_DIR="$WORK_DIR/kernel"
 AK3_DIR="$WORK_DIR/ak3"
-TOOLCHAIN_DIR="$ROOT_DIR/toolchains"
+TOOLCHAIN_DIR="$WORK_DIR/toolchains"
 OUT_DIR="$KERNEL_DIR/out"
 LOG_FILE="$WORK_DIR/build.log"
 FINAL_OUTPUT_DIR="$ROOT_DIR/out"
@@ -666,7 +666,7 @@ download_toolchain() {
         mkdir -p "$tmpdir"
 
         log "Extracting $key..."
-        tar -xf "$archive" -C "$tmpdir"
+        tar --hard-dereference -xf "$archive" -C "$tmpdir"
         rm -f "$archive"
 
         # Handle single top-level directory in tarball
