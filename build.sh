@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
+# Save original command
+ORIG_CMD="$0 $*"
+
 # Variables
 UPSTREAM=""
 BRANCH=""
@@ -556,6 +559,20 @@ esac
 
 check_dependencies
 
+# Clean workspace before setting up log (so rm -rf doesn't break tee)
+if $CLEAN; then
+    echo "[*] Cleaning workspace..."
+    rm -rf "$WORK_DIR"
+fi
+
+mkdir -p "$WORK_DIR"
+
+# Redirect all output to both terminal and build.log (overwrites previous)
+exec > >(tee "$LOG_FILE") 2>&1
+
+echo "Command: $ORIG_CMD"
+echo
+
 # Summary
 echo "=============================="
 echo " Kernel Build Configuration"
@@ -593,6 +610,10 @@ else
 fi
 
 echo
+echo "Defconfig:"
+echo "  ${DEFCONFIG:-defconfig}"
+
+echo
 echo "AnyKernel3:"
 if [[ -n "$AK3_REPO" ]]; then
     echo "  Enabled"
@@ -608,17 +629,7 @@ echo "  $CLEAN"
 echo
 echo "=============================="
 
-# Workspace
-if $CLEAN; then
-    log "Cleaning workspace..."
-    rm -rf "$WORK_DIR"
-fi
-
-mkdir -p "$WORK_DIR"
 mkdir -p "$TOOLCHAIN_DIR"
-
-# Redirect all output to both terminal and build.log (overwrites previous)
-exec > >(tee "$LOG_FILE") 2>&1
 
 # Clone upstream kernel
 log "Preparing kernel source..."
