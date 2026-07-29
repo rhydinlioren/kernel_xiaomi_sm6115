@@ -89,6 +89,62 @@ detect_gcc_prefix() {
     return 1
 }
 
+setup_flavor() {
+    if [[ "$FLAVOR" == "vanilla" ]]; then
+        return 0
+    fi
+
+    log "Setting up $FLAVOR flavor..."
+
+    case "$FLAVOR" in
+        resukisu)
+            if [[ -f "$KERNEL_DIR/ReSukiSU/Kconfig" ]]; then
+                success "ReSukiSU already set up."
+                return 0
+            fi
+            log "Downloading ReSukiSU setup script..."
+            if command -v curl &>/dev/null; then
+                curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" 2>/dev/null | bash -s -- "$KERNEL_DIR" || {
+                    error "ReSukiSU setup failed."
+                }
+            elif command -v wget &>/dev/null; then
+                wget -q -O - "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" 2>/dev/null | bash -s -- "$KERNEL_DIR" || {
+                    error "ReSukiSU setup failed."
+                }
+            else
+                error "curl or wget required for ReSukiSU setup."
+            fi
+            if [[ ! -f "$KERNEL_DIR/ReSukiSU/Kconfig" ]]; then
+                error "ReSukiSU setup did not complete successfully."
+            fi
+            success "ReSukiSU source integrated."
+            ;;
+
+        ksunext)
+            if [[ -f "$KERNEL_DIR/KernelSU-Next/Kconfig" ]]; then
+                success "KernelSU-Next already set up."
+                return 0
+            fi
+            log "Downloading KernelSU-Next setup script..."
+            if command -v curl &>/dev/null; then
+                curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" 2>/dev/null | bash -s -- "$KERNEL_DIR" || {
+                    error "KernelSU-Next setup failed."
+                }
+            elif command -v wget &>/dev/null; then
+                wget -q -O - "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" 2>/dev/null | bash -s -- "$KERNEL_DIR" || {
+                    error "KernelSU-Next setup failed."
+                }
+            else
+                error "curl or wget required for KernelSU-Next setup."
+            fi
+            if [[ ! -f "$KERNEL_DIR/KernelSU-Next/Kconfig" ]]; then
+                error "KernelSU-Next setup did not complete successfully."
+            fi
+            success "KernelSU-Next source integrated."
+            ;;
+    esac
+}
+
 apply_patches() {
     local patch_dir="$1"
     local label="$2"
@@ -590,21 +646,24 @@ setup_build_env
 # 2. Apply common patches
 apply_patches "$COMMON_PATCHES_DIR" "common"
 
-# 3. Apply flavor-specific patches
+# 3. Setup selected flavor (run setup script for resukisu/ksunext)
+setup_flavor
+
+# 4. Apply flavor-specific patches
 if [[ "$FLAVOR" != "vanilla" ]]; then
     apply_patches "$FLAVOR_PATCHES_DIR" "$FLAVOR"
 fi
 
-# 4. Merge config fragments
+# 5. Merge config fragments
 merge_config_fragments
 
-# 5. Compile kernel
+# 6. Compile kernel
 compile_kernel
 
-# 6. Organize output artifacts
+# 7. Organize output artifacts
 organize_outputs
 
-# 7. Optional AnyKernel3 packaging
+# 8. Optional AnyKernel3 packaging
 if [[ -n "$AK3_REPO" ]]; then
     package_ak3
 fi

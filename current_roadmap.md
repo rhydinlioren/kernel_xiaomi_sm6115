@@ -20,12 +20,18 @@ A modular Android kernel build framework that automates fetching sources, applyi
 - [x] Kernel compilation
 - [x] Optional AnyKernel3 packaging
 - [x] Output directory & artifact organization
+- [x] Flavor setup scripts (`resukisu`, `ksunext`)
+- [x] ReSukiSU config fragment (`configs/resukisu.config`)
+- [x] ReSukiSU manual hook patches (`patches/resukisu/`)
+- [x] Config fragment auto-selection per flavor
+- [x] KPM config fragment (`configs/kpm.config`)
+- [x] Droidspaces config fragment (`configs/droidspaces.config`)
 
 ## Next Up
 
-- [ ] Dependency checking at startup
 - [ ] `.github/workflows/` CI pipeline
-- [ ] Populate `patches/` and `configs/` with actual content
+- [ ] Populate `patches/common/` with actual content
+- [ ] Populate `patches/ksunext/` with KernelSU-Next patches
 - [ ] Flavor-specific defconfig detection (auto-select based on device)
 - [ ] Incremental build support (detect source/toolchain changes)
 - [ ] Device/variant selection argument (`--device`)
